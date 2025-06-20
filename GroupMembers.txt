@@ -1,0 +1,14 @@
+ 	         ADAMA SCIENCE AND TECHNOLOGY UNIVERSITY
+     	     DEPAERTMENT OF COMPUTER SCIENCE AND ENGINEERING
+		COURSE: Informaion Storage and Retreival 
+
+			GROUP - Project
+
+Members Name             Members ID
+
+Eleni Tadese            UGR/30450/15
+Medhanit Tesfaye        UGR/30862/15
+Marya Getu              UGR/30857/15
+Mohammed Sadik          UGR/30960/15
+Samuel Zenebe           UGR/31182/15
+Yohannes Kifle          UGR/31426/15

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>✨ Search Engine</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+
+<body>
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="container">
+        <h1>
+            <i class="fas fa-search" style="margin-right: 10px"></i>
+            Search Engine
+        </h1>
+
+        <form method="POST">
+            <input type="text" name="query" value="{{ query }}" placeholder="Search ..." required
+                autocomplete="off" />
+            <button type="submit">
+                <i class="fas fa-search" style="margin-right: 8px"></i>
+                Search
+            </button>
+        </form>
+
+        {% if query %}
+        <div class="search-summary">
+            {% if show_fallback %}
+            <p>Showing closest matches for <strong>"{{ query }}"</strong></p>
+            {% else %}
+            <p>Found {{ total_result_count }} results for <strong>"{{ query }}"</strong></p>
+            {% endif %}
+        </div>
+
+        {% for res in results %}
+        <div class="result high-confidence {% if res.similarity < 0.1 %}low-confidence{% endif %}">
+            <h4>
+                <i class="fas fa-file-alt" style="margin-right: 8px; color: #6a11cb"></i>
+                {{ res.filename }}
+            </h4>
+
+            <div class="metrics">
+                <span class="metric-chip">
+                    <i class="fas fa-trophy"></i> Rank #{{ res.rank }}
+                </span>
+                <span class="metric-chip">
+                    <i class="fas fa-percentage"></i> {{ "%.2f"|format(res.similarity * 100) }}% Match
+                </span>
+                <span class="metric-chip">
+                    <i class="fas fa-ruler"></i> {{ res.length }} terms
+                </span>
+            </div>
+
+            <div class="snippet">
+                <p class="preview">{{ res.content[:300] }}...</p>
+                <p class="full-content">{{ res.content }}</p>
+                <button class="read-more" onclick="toggleContent(this)">
+                    <span>Read more</span>
+                </button>
+            </div>
+
+            {% if res.similarity < 0.1 %} <div class="warning">
+                <i class="fas fa-exclamation-triangle"></i> Low match confidence
+        </div>
+        {% endif %}
+
+        <div class="table-container">
+            <h5>
+                <i class="fas fa-table" style="margin-right: 8px"></i>
+                Term Analysis
+            </h5>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Term</th>
+                        <th>TF</th>
+                        <th>IDF</th>
+                        <th>TF-IDF</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in res.tfidf_details %}
+                    <tr>
+                        <td>{{ row.term }}</td>
+                        <td>{{ row.tf }}</td>
+                        <td>{{ row.idf }}</td>
+                        <td>{{ row.weight }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endfor %}
+
+    {% if total_pages > 1 %}
+    <div class="pagination">
+        {% if page > 1 %}
+        <a href="{{ url_for('index', page=page-1, query=query)}}">
+            <i class="fas fa-chevron-left"></i>
+        </a>
+        {% endif %}
+
+        {% set start_page = 1 if (page - 2) < 1 else (page - 2) %} {% set end_page=total_pages if (page + 2)>
+            total_pages else (page + 2) %}
+
+            {% if start_page > 1 %}
+            <a href="{{ url_for('index', page=1, query=query)  }}">1</a>
+            <span>...</span>
+            {% endif %}
+
+            {% for p in range(start_page, end_page + 1) %}
+            <a href="{{ url_for('index', page=p, query=query) }}" class="{% if p == page %}active{% endif %}">
+                {{ p }}
+            </a>
+            {% endfor %}
+
+            {% if end_page < total_pages %} <span>...</span>
+                <a href="{{ url_for('index', page=total_pages, query=query)  }}">{{ total_pages }}</a>
+                {% endif %}
+
+                {% if page < total_pages %} <a href="{{ url_for('index', page=page+1, query=query)}}">
+                    <i class="fas fa-chevron-right"></i>
+                    </a>
+                    {% endif %}
+    </div>
+
+    {% endif %}
+    {% endif %}
+    </div>
+
+    <footer>
+        <p>© 2025 Search Engine | Built with <i class="fas fa-heart" style="color: #e53e3e"></i></p>
+    </footer>
+
+    <script>
+        function toggleContent(btn) {
+            const container = btn.closest(".snippet");
+            const preview = container.querySelector(".preview");
+            const full = container.querySelector(".full-content");
+
+            if (full.style.maxHeight) {
+                full.style.maxHeight = null;
+                preview.style.display = "block";
+                btn.classList.remove("active");
+                btn.innerHTML = "<span>Read more</span>";
+            } else {
+                full.style.maxHeight = full.scrollHeight + "px";
+                preview.style.display = "none";
+                btn.classList.add("active");
+                btn.innerHTML = "<span>Read less</span>";
+            }
+        }
+
+        document.querySelectorAll(".pagination a").forEach((link) => {
+            link.addEventListener("click", (e) => {
+                document.getElementById('loadingSpinner').style.display = 'flex';
+                window.scrollTo({
+                    top: 0,
+                    behavior: "smooth",
+                });
+            });
+        });
+
+
+        document.querySelector('form').addEventListener('submit', function () {
+            document.getElementById('loadingSpinner').style.display = 'flex';
+        });
+        window.addEventListener('load', function () {
+            document.getElementById('loadingSpinner').style.display = 'none';
+        });
+    </script>
+
+    <style>
+        .metric-chip {
+            display: inline-block;
+            background: #edf2f7;
+            padding: 4px 12px;
+            border-radius: 50px;
+            margin-right: 10px;
+            font-size: 0.9rem;
+        }
+
+        .full-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            color: #718096;
+            padding: 20px;
+        }
+
+        .low-confidence {
+            opacity: 0.8;
+            border-left: 4px solid #ff9800;
+        }
+
+        .warning {
+            background: #fff3f3;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border-left: 4px solid #e53e3e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+    </style>
+</body>
+
+</html>
