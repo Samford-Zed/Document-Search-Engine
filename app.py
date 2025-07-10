@@ -10,6 +10,7 @@ import nltk
 
 nltk.download('stopwords')
 
+
 app = Flask(__name__, static_folder='assets', static_url_path='/assets')
 
 stop_words = set(stopwords.words('english'))
@@ -17,11 +18,14 @@ stemmer = PorterStemmer()
 
 
 def preprocess(text):
+    """Lowercase, remove punctuation, tokenize, remove stopwords, and stem."""
     text = text.lower().translate(str.maketrans("", "", string.punctuation))
     tokens = text.split()
     return [stemmer.stem(token) for token in tokens if token not in stop_words]
 
+
 def load_documents(folder_path='documents'):
+    """Load XML documents from a folder and preprocess tokens."""
     docs = {}
     for filename in os.listdir(folder_path):
         if filename.endswith('.xml'):
@@ -34,13 +38,15 @@ def load_documents(folder_path='documents'):
                 docs[filename] = {
                     'tokens': tokens,
                     'content': content,
-                    'filename': filename  
+                    'filename': filename
                 }
             except ET.ParseError:
                 continue
     return docs
 
+
 def build_index(docs):
+    """Build inverted index with DF and CF stats."""
     index = defaultdict(lambda: defaultdict(int))
     df = defaultdict(int)
     cf = defaultdict(int)
@@ -52,7 +58,9 @@ def build_index(docs):
             cf[term] += freq
     return index, df, cf
 
+
 def compute_tfidf_vector(tokens, df, N):
+    """Compute TF-IDF vector for tokens."""
     tf = Counter(tokens)
     vector = {}
     for term, freq in tf.items():
@@ -61,20 +69,26 @@ def compute_tfidf_vector(tokens, df, N):
             vector[term] = freq * idf
     return vector, tf
 
+
 def cosine_similarity(vec1, vec2):
+    """Compute cosine similarity between two vectors."""
     dot = sum(vec1.get(k, 0) * vec2.get(k, 0) for k in vec1)
-    norm1 = math.sqrt(sum(v**2 for v in vec1.values()))
-    norm2 = math.sqrt(sum(v**2 for v in vec2.values()))
+    norm1 = math.sqrt(sum(v ** 2 for v in vec1.values()))
+    norm2 = math.sqrt(sum(v ** 2 for v in vec2.values()))
     return dot / (norm1 * norm2) if norm1 and norm2 else 0.0
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    """Main route: search, score, paginate, render results."""
     docs = load_documents()
     index_data, df, cf = build_index(docs)
     total_docs = len(docs)
+
     query = request.form.get('query', "") if request.method == 'POST' else request.args.get('query', "")
     page = int(request.args.get('page', 1))
     per_page = 5
+
     results = []
     total_result_count = 0
 
@@ -85,7 +99,7 @@ def index():
         for doc_id, data in docs.items():
             doc_vector, doc_tf = compute_tfidf_vector(data['tokens'], df, total_docs)
             sim = cosine_similarity(query_vector, doc_vector)
-            
+
             tfidf_details = []
             for term in q_tokens:
                 tf = doc_tf.get(term, 0)
@@ -97,22 +111,26 @@ def index():
                     'idf': round(idf, 4),
                     'weight': round(weight, 4)
                 })
-            
+
             results.append({
-                'filename': data['filename'], 
-                'similarity': max(0, round(sim, 4)), 
+                'filename': data['filename'],
+                'similarity': max(0, round(sim, 4)),
                 'length': len(data['tokens']),
                 'content': data['content'],
                 'tfidf_details': tfidf_details
             })
 
         results.sort(key=lambda x: x['similarity'], reverse=True)
+
         for rank, result in enumerate(results, start=1):
             result['rank'] = rank
+
         total_result_count = len(results)
 
+    # Pagination logic
     start = (page - 1) * per_page
     end = start + per_page
+
     if not results:
         paginated_results = []
         for data in list(docs.values())[start:end]:
@@ -137,6 +155,7 @@ def index():
         show_fallback=not bool(results) and bool(query),
         total_result_count=total_result_count
     )
+
 
 if __name__ == '__main__':
     app.run(debug=True)
