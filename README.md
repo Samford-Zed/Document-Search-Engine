@@ -3,7 +3,6 @@
 A simple **Search Engine** built in Python using Flask, NLTK, and TF‑IDF for indexing and retrieval.  
 It processes XML documents (such as those from ClinicalTrials.gov) to enable quick, relevant searches.
 
----
 
 ## ⚙️ Features
 
@@ -22,7 +21,6 @@ It processes XML documents (such as those from ClinicalTrials.gov) to enable qui
   - Shows Term‑level statistics (TF and TF‑IDF).
   - Displays Document statistics (length, term count).
 
----
 
 ## 🗂️ Directory Structure
 Document_Search/
