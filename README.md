@@ -8,7 +8,7 @@ It processes XML documents (such as those from ClinicalTrials.gov) to enable qui
 
 - **Preprocesses XML documents**:
   - Extracts `<brief_title>` and `<brief_summary>`.
-  - Cleans text, lowercases, removes stop words, and applies stemming.
+  - Cleans text, Lowercases, removes stop words, and applies stemming.
 - **Indexes documents using TF‑IDF**:
   - TF = Term Frequency
   - DF = Document Frequency
