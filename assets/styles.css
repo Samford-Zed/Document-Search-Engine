@@ -1,4 +1,4 @@
-/* Modern Gradient Background with Animation */
+/* Modern Gradient Background */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(-45deg, #f5f7fa, #e4e8f0, #d8e1e8, #c3d6e3);
@@ -254,4 +254,5 @@ tr:hover td {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+
 }
