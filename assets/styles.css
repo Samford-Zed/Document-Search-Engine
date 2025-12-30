@@ -16,7 +16,7 @@ body {
     100% { background-position: 0% 50%; }
 }
 
-/* Floating Container with Glassmorphism Effect */
+/* Floating Container  */
 .container {
     max-width: 900px;
     margin: 40px auto;
@@ -256,3 +256,4 @@ tr:hover td {
     100% { transform: rotate(360deg); }
 
 }
+
